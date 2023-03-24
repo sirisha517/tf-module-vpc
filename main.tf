@@ -91,6 +91,7 @@ resource "aws_route_table" "private-route-table" {
     { Name = "${var.env}-${each.value["name"]}"}
   )
 }
+
 ## private route table association
 resource "aws_route_table_association" "private-route-association" {
   for_each = var.private_subnets
