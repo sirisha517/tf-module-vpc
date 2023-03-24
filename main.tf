@@ -27,6 +27,13 @@ resource "aws_route_table" "public-route-table" {
     { Name = "${var.env}-${each.value["name"]}"}
   )
 }
+
+  ## public route table association
+resource "aws_route_table_association" "public-route-association" {
+  for_each = var.public_subnets
+  subnet_id      = lookup(lookup(aws_subnet.public_subnets,each.value["name"],null),"id",null)
+  route_table_id = aws_route_table.private-route-table[each.value["name"]].id
+}
   ## private subnets
 
 resource "aws_subnet" "private_subnets" {
@@ -40,7 +47,7 @@ resource "aws_subnet" "private_subnets" {
     { Name = "${var.env}-${each.value["name"]}"}
   )
 }
-## public route table
+## private route table
 resource "aws_route_table" "private-route-table" {
   vpc_id = aws_vpc.main.id
 
