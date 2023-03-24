@@ -47,12 +47,12 @@ resource "aws_route_table_association" "public-route-association" {
   route_table_id = aws_route_table.public-route-table[each.value["name"]].id
 }
 
-# elastic IP
+ # elastic IP
 resource "aws_eip" "nat" {
   for_each = var.public_subnets
   vpc      = true
 }
-#NAT GATEWAY
+ #NAT GATEWAY
 resource "aws_nat_gateway" "nat-gateway" {
 
   for_each = var.public_subnets
@@ -76,7 +76,7 @@ resource "aws_subnet" "private_subnets" {
     { Name = "${var.env}-${each.value["name"]}"}
   )
 }
-## private route table
+ ## private route table
 resource "aws_route_table" "private-route-table" {
   vpc_id = aws_vpc.main.id
 
