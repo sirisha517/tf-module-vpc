@@ -26,6 +26,12 @@ resource "aws_internet_gateway" "igw" {
   )
 }
 
+# elastic IP
+resource "aws_eip" "nat" {
+  for_each = var.public_subnets
+  vpc      = true
+}
+
 #NAT GATEWAY
 resource "aws_nat_gateway" "nat-gateways" {
 
@@ -52,18 +58,13 @@ resource "aws_route_table" "public-route-table" {
 }
 
   ## public route table association
-resource "aws_route_table_association" "public-route-association" {
+resource "aws_route_table_association" "public-association" {
 
   for_each = var.public_subnets
   subnet_id      = lookup(lookup(aws_subnet.public_subnets,each.value["name"],null),"id",null)
   route_table_id = aws_route_table.public-route-table[each.value["name"]].id
 }
 
- # elastic IP
-resource "aws_eip" "nat" {
-  for_each = var.public_subnets
-  vpc      = true
-}
 
   ## private subnets
 
@@ -78,19 +79,18 @@ resource "aws_subnet" "private_subnets" {
     { Name = "${var.env}-${each.value["name"]}"}
   )
 }
- ## private route table
+# Private Route table
 resource "aws_route_table" "private-route-table" {
   vpc_id = aws_vpc.main.id
 
   for_each = var.private_subnets
   route {
-    cidr_block = "0.0.0.0/0"
+    cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat-gateways["public-${split("-", each.value["name"])[1]}"].id
   }
-
-  tags =  merge(
+  tags = merge(
     var.tags,
-    { Name = "${var.env}-${each.value["name"]}"}
+    { Name = "${var.env}-${each.value["name"]}" }
   )
 }
 
