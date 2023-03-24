@@ -25,6 +25,18 @@ resource "aws_internet_gateway" "igw" {
     { Name = "${var.env}-igw"}
   )
 }
+
+#NAT GATEWAY
+resource "aws_nat_gateway" "nat-gateways" {
+
+  for_each = var.public_subnets
+  allocation_id = aws_eip.nat[each.value["name"]].id
+  subnet_id     = aws_subnet.public_subnets[each.value["name"]].id
+  tags =  merge(
+    var.tags,
+    { Name = "${var.env}-${each.value["name"]}"}
+  )
+}
   ## public route table
 resource "aws_route_table" "public-route-table" {
   vpc_id = aws_vpc.main.id
@@ -52,17 +64,7 @@ resource "aws_eip" "nat" {
   for_each = var.public_subnets
   vpc      = true
 }
- #NAT GATEWAY
-resource "aws_nat_gateway" "nat-gateway" {
 
-  for_each = var.public_subnets
-  allocation_id = aws_eip.nat[each.value["name"]].id
-  subnet_id     = aws_subnet.public_subnets[each.value["name"]].id
-  tags =  merge(
-    var.tags,
-    { Name = "${var.env}-${each.value["name"]}"}
-  )
-}
   ## private subnets
 
 resource "aws_subnet" "private_subnets" {
@@ -83,7 +85,7 @@ resource "aws_route_table" "private-route-table" {
   for_each = var.private_subnets
   route {
     cidr_block = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.nat-gateway["public-${split("-",each.value["name"])[1]}"].id
+    nat_gateway_id = aws_nat_gateway.nat-gateways["public-${split("-", each.value["name"])[1]}"].id
   }
 
   tags =  merge(
