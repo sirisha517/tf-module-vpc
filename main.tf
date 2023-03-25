@@ -58,17 +58,6 @@ resource "aws_vpc_peering_connection" "peer" {
   )
 }
 
-# Peering
-resource "aws_vpc_peering_connection" "peer" {
-  peer_owner_id = data.aws_caller_identity.account.account_id
-  peer_vpc_id   = var.default_vpc_id
-  vpc_id        = aws_vpc.main.id
-  auto_accept   = true
-  tags = merge(
-    var.tags,
-    { Name = "${var.env}-peer" }
-  )
-}
 # Public Route table
 resource "aws_route_table" "public-route-table" {
 vpc_id = aws_vpc.main.id
